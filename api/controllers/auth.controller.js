@@ -26,7 +26,7 @@ export const signin = async(req, res, next) => {
         }
         const validPassword = bcryptjs.compareSync(password, validUser.password);
         if(!validPassword){
-            return next(errorHandler(401, "Wrong Credentials"));
+            return next(errorHandler(401, "Invalid Credentials"));
         }
         //here create cookie with jsonwebtoken
         const token = jwt.sign({id: validUser._id}, process.env.JWT_SECRET)
@@ -35,7 +35,10 @@ export const signin = async(req, res, next) => {
         //_doc is the object containing the validUser in mongoDB
         const {password: pass, ...rest } = validUser._doc;
         res
-        .cookie('access_token', token, {httpOnly:true})
+        .cookie('access_token', token, {
+            httpOnly:true,
+            secure:true,
+            sameSite:'None',})
         .status(200)
         //pass the ...rest and not the actual user password
         .json(rest);

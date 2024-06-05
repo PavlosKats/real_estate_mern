@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {Link, useNavigate } from 'react-router-dom';
+import { errorHandler } from '../../../api/utils/error';
 
 
 export default function SignUp() {
@@ -9,6 +10,7 @@ export default function SignUp() {
   const [formData, setFormData] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  //useNavigate() to create navigation for the site links etc..
   const navigate = useNavigate();
 
   //setup function to handle the date on change
@@ -25,6 +27,11 @@ export default function SignUp() {
     e.preventDefault();
     try {
         setLoading(true);
+        if(!formData.username || !formData.email || !formData.password){
+          setError("Please fill all the required fields.")
+          setLoading(false);
+          return;
+        }
         const res = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: {
@@ -60,7 +67,7 @@ export default function SignUp() {
           {loading ? 'Loading...': 'Sign Up'}
         </button>
       </form>
-      <div className="flex gap-3 mt-5 onChange={handleChange}">
+      <div className="flex gap-3 mt-5" >
         <p>Already have an account?</p>
         <Link to={"/sign-in"}>
           <span className='text-blue-700'>Sign In</span> 
