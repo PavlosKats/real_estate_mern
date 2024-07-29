@@ -13,7 +13,7 @@ export default function SignUp() {
   //useNavigate() to create navigation for the site links etc..
   const navigate = useNavigate();
 
-  //setup function to handle the date on change
+  //setup function to handle the data on change
   const handleChange = (e) =>{
     setFormData({
       ...formData,

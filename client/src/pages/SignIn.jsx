@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import {Link, useNavigate } from 'react-router-dom';
-
+import { useDispatch, useSelector} from 'react-redux';
+import { signInStart, signInFailure, signInSuccess } from '../redux/user/userSlice';
 
 export default function SignIn() {
 
  //setup state to handle form data submission
  //handle errors and have loading while creating user
   const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  //useSelector to get the loading and error states from the 'user' in store.js
+  const {loading, error } = useSelector((state)=>state.user)
   //useNavigate() to create navigation for the site links etc..
   const navigate = useNavigate();
+  //useDispatch to initialise react dispatch
+  const dispatch = useDispatch();
 
   //setup function to handle the date on change
   const handleChange = (e) =>{
@@ -25,7 +28,7 @@ export default function SignIn() {
     //e.preventDefault() stops the page from reloading when submit happens
     e.preventDefault();
     try {
-        setLoading(true);
+        dispatch(signInStart())
         //check if password is empty or not
         if (!formData.password || !formData.email) {
           setError("Please enter your credentials.");
@@ -41,17 +44,14 @@ export default function SignIn() {
         });
         const data = await res.json();
         if (data.success === false) {
-          setError(data.message);
-          setLoading(false);
+          dispatch(signInFailure(data.message));
           return;
         }
-        setLoading(false);
-        setError(null);
+        dispatch(signInSuccess(data));
         navigate('/');
         
     } catch (error) {
-        setLoading(false)
-        setError(error.message)
+        dispatch(signInFailure(error.message));
     }
   }
 
