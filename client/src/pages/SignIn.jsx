@@ -9,6 +9,7 @@ export default function SignIn() {
  //handle errors and have loading while creating user
   const [formData, setFormData] = useState({});
   //useSelector to get the loading and error states from the 'user' in store.js
+
   const {loading, error } = useSelector((state)=>state.user)
   //useNavigate() to create navigation for the site links etc..
   const navigate = useNavigate();
@@ -29,12 +30,7 @@ export default function SignIn() {
     e.preventDefault();
     try {
         dispatch(signInStart())
-        //check if password is empty or not
-        if (!formData.password || !formData.email) {
-          setError("Please enter your credentials.");
-          setLoading(false);
-          return;
-        }
+
         const res = await fetch('/api/auth/signin', {
           method: 'POST',
           headers: {

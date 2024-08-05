@@ -26,7 +26,7 @@ export const signin = async(req, res, next) => {
         }
         const validPassword = bcryptjs.compareSync(password, validUser.password);
         if(!validPassword){
-            return next(errorHandler(401, "Invalid Credentials"));
+            return next(errorHandler(401, "Wrong Credentials"));
         }
         //here create cookie with jsonwebtoken
         const token = jwt.sign({id: validUser._id}, process.env.JWT_SECRET)
