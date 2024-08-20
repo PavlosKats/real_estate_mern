@@ -16,9 +16,9 @@ export default function Profile() {
   const [fileUploadError, setFileUploadError] = useState(false);
   const [formData, setFormData] = useState({});
 
-   console.log(filePercent);
-   console.log(fileUploadError);
-   console.log(file);
+  //  console.log(filePercent);
+  //  console.log(fileUploadError);
+  //  console.log(file);
    
    
   useEffect(()=>{

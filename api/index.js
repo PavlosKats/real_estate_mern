@@ -4,6 +4,7 @@ import userRouter from './routes/user.route.js';
 import authRouter from './routes/auth.route.js';
 // install dotenv to be able to use the .env variable on the backend, then import dotenv and run dotenv.config() to run the server
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 dotenv.config();
 
 
@@ -15,6 +16,9 @@ mongoose.connect(process.env.MONGO).then(()=>{
 })
 
 const app = express();
+
+//use cookie-parser 
+app.use(cookieParser());
 
 //this is going to allow json as input from the server
 app.use(express.json());
