@@ -3,7 +3,7 @@ import { useRef, useState ,useEffect} from 'react'
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { getAuth , signOut } from 'firebase/auth'
 import { app } from '../firebase';
-import { updateUserStart, updateUserFailure, updateUserSuccess, signOutUser} from '../redux/user/userSlice';
+import { updateUserStart, updateUserFailure, updateUserSuccess, signOutUser, deleteUserStart,deleteUserSuccess,deleteUserFailure} from '../redux/user/userSlice';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,12 +14,13 @@ export default function Profile() {
   
   
   //import current user from central state
-  const {currentUser} = useSelector((state)=>(state.user))
+  const {currentUser, loading, error} = useSelector((state)=>(state.user))
   
   const [file, setFile] = useState(undefined)
   const [filePercent,setFilePercent]= useState(0);
   const [fileUploadError, setFileUploadError] = useState(false);
   const [formData, setFormData] = useState({});
+  const [updateSuccess, setUpdateSuccess] = useState(false);
   
   const dispatch = useDispatch();
   
@@ -94,6 +95,7 @@ export default function Profile() {
           return;
         }
         dispatch(updateUserSuccess(data))
+        setUpdateSuccess(true);
 
     } catch (error) {
       dispatch(updateUserFailure(error.message));
@@ -113,6 +115,27 @@ export default function Profile() {
       navigate('/sign-in');
     });
   };
+
+  //Delete User
+  const handleDeleteUser = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`api/user/delete/${currentUser._id}`,
+        {
+          method:'DELETE'
+        }
+      )
+      const data = await res.json()
+      if(data.success === false){
+        dispatch(deleteUserFailure(data.message))
+        return;
+      }
+      dispatch(deleteUserSuccess(data))
+
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message))
+    }
+  }
   
  
   return (
@@ -132,12 +155,14 @@ export default function Profile() {
         <input onChange={handleChange} type="text" defaultValue={currentUser.username} placeholder='username'className='border p-3 rounded-lg ' id='username' />
         <input onChange={handleChange} type="text" defaultValue={currentUser.email} placeholder='email'className='border p-3 rounded-lg ' id='email' />
         <input onChange={handleChange} type="text" placeholder='password'className='border p-3 rounded-lg ' id='password' />
-        <button className='bg-slate-700 rounded-lg text-white p-3 hover:opacity-90 disabled:opacity-80 uppercase' >Update</button>
+        <button className='bg-slate-700 rounded-lg text-white p-3 hover:opacity-90 disabled:opacity-80 uppercase' >{loading ? 'Loading' : 'Update'}</button>
       </form>
       <div className='flex justify-between my-5'>
-        <span className='text-red-600 cursor-pointer'>Delete Acount</span>
+        <span onClick={handleDeleteUser} className='text-red-600 cursor-pointer'>Delete Acount</span>
         <span onClick={handleSignout} className='text-red-600 cursor-pointer'>Sign Out</span>
       </div>
+      <p className='text-red-700'>{error ? error : ''}</p>
+      <p className='text-green-700'>{updateSuccess? 'User updated successfully': '' }</p>
     </div>
     
   )
