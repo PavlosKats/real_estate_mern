@@ -16,4 +16,4 @@ export const verifyUser = ( req, res, next) =>{
             next();
         }
     )
-};
+}; 

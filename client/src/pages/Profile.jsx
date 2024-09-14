@@ -1,13 +1,18 @@
 import { useSelector } from 'react-redux'
 import { useRef, useState ,useEffect} from 'react'
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
+import { getAuth , signOut } from 'firebase/auth'
 import { app } from '../firebase';
+import { updateUserStart, updateUserFailure, updateUserSuccess, signOutUser} from '../redux/user/userSlice';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 
 export default function Profile() {
   //useRef to connect image to file input
   const fileRef = useRef(null)
-
+  
+  
   //import current user from central state
   const {currentUser} = useSelector((state)=>(state.user))
   
@@ -15,10 +20,18 @@ export default function Profile() {
   const [filePercent,setFilePercent]= useState(0);
   const [fileUploadError, setFileUploadError] = useState(false);
   const [formData, setFormData] = useState({});
+  
+  const dispatch = useDispatch();
+  
+  // useNavigate for navigate to login page after sign out
+  const navigate = useNavigate();
+
 
   //  console.log(filePercent);
   //  console.log(fileUploadError);
   //  console.log(file);
+  // console.log(formData);
+  
    
    
   useEffect(()=>{
@@ -51,13 +64,61 @@ export default function Profile() {
       }
     )
   }
+
+  ///
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id] : e.target.value})
+  };
+
+
+  ///
+  const handleSubmit = async(e) =>{
+    e.preventDefault();
+    console.log(currentUser);
+    
+    try {
+      dispatch(updateUserStart());
+      const res = await fetch(`api/user/update/${currentUser._id}`,
+        {
+          method: 'POST',
+          headers:{
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+        const data = await res.json();
+        console.log(data);
+        
+        if(data.success === false){
+          dispatch(updateUserFailure(data.message))
+          return;
+        }
+        dispatch(updateUserSuccess(data))
+
+    } catch (error) {
+      dispatch(updateUserFailure(error.message));
+    }
+  }
+
   
+  //Signout function 
+  const handleSignout = () => {
+    const auth = getAuth();
+
+    signOut(auth)
+    .then(() => {
+      //signout user
+      dispatch(signOutUser())
+      //check if this work later
+      navigate('/sign-in');
+    });
+  };
   
  
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7 uppercase text-slate-600'>Profile</h1>
-      <form className='flex flex-col gap-4'>
+      <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         {/* connect file input with image  */}
         <input onChange={(e)=>setFile(e.target.files[0])} type="file" ref={fileRef} hidden accept='image/*'/>
         <img onClick={()=>fileRef.current.click()} className='self-center rounded-full w-20 h-20 object-cover cursor-pointer my-5' src={formData.avatar || currentUser.avatar} alt="pic" />
@@ -68,14 +129,14 @@ export default function Profile() {
           )  : filePercent === 100 ? (<span className='text-green-600'>File uploaded</span>) : ("")
            }
         </p>
-        <input type="text" placeholder='username'className='border p-3 rounded-lg ' id='username' />
-        <input type="text" placeholder='email'className='border p-3 rounded-lg ' id='email' />
-        <input type="text" placeholder='password'className='border p-3 rounded-lg ' id='password' />
+        <input onChange={handleChange} type="text" defaultValue={currentUser.username} placeholder='username'className='border p-3 rounded-lg ' id='username' />
+        <input onChange={handleChange} type="text" defaultValue={currentUser.email} placeholder='email'className='border p-3 rounded-lg ' id='email' />
+        <input onChange={handleChange} type="text" placeholder='password'className='border p-3 rounded-lg ' id='password' />
         <button className='bg-slate-700 rounded-lg text-white p-3 hover:opacity-90 disabled:opacity-80 uppercase' >Update</button>
       </form>
       <div className='flex justify-between my-5'>
         <span className='text-red-600 cursor-pointer'>Delete Acount</span>
-        <span className='text-red-600 cursor-pointer'>Sign Out</span>
+        <span onClick={handleSignout} className='text-red-600 cursor-pointer'>Sign Out</span>
       </div>
     </div>
     
